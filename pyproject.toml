@@ -27,3 +27,9 @@ dev = [
     "ruff>=0.14.11",
     "ty>=0.0.10",
 ]
+docs = [
+    "mkdocs-git-revision-date-localized-plugin>=1.5.0",
+    "mkdocs-material>=9.7.1",
+    "mkdocstrings[python]>=1.0.0",
+    "pymdown-extensions>=10.20",
+]
