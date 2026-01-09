@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-A protocol-agnostic foundation library providing shared components for building secure TLS-based network protocol implementations in Python. Tlacacoca (pronounced "tla-ka-KO-ka", from Nahuatl meaning "foundation/base") provides security, middleware, and logging utilities that can be shared across multiple protocol implementations.
+A protocol-agnostic foundation library providing shared components for building secure TLS-based network protocol implementations in Python. Tlacacoca (pronounced "tla-ka-KO-ka", from Nahuatl meaning "secure/safe") provides security, middleware, and logging utilities that can be shared across multiple protocol implementations.
 
 ## Key Features
 

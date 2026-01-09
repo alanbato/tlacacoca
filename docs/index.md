@@ -2,7 +2,7 @@
 
 **A protocol-agnostic foundation library for building secure TLS-based network applications**
 
-Tlacacoca (pronounced "tla-ka-KO-ka", meaning "foundation" in Nahuatl) provides shared security, middleware, and logging components that can be used across multiple TLS-based protocol implementations.
+Tlacacoca (pronounced "tla-ka-KO-ka", meaning "secure/safe" in Nahuatl) provides shared security, middleware, and logging components that can be used across multiple TLS-based protocol implementations.
 
 ---
 
