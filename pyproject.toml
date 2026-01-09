@@ -1,0 +1,29 @@
+[project]
+name = "tlacacoca"
+version = "0.1.0"
+description = "Shared foundation library for TLS-based protocol implementations"
+readme = "README.md"
+authors = [
+    { name = "Alan Velasco", email = "alanvelasco.a@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "cryptography>=46.0.3",
+    "structlog>=25.5.0",
+    "tomli>=2.0.0 ; python_full_version < '3.11'",
+    "tomli-w>=1.2.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.10,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.14.11",
+    "ty>=0.0.10",
+]
