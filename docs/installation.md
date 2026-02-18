@@ -144,6 +144,7 @@ Tlacacoca has minimal runtime dependencies:
 | Dependency | Purpose |
 |------------|---------|
 | `cryptography` | Certificate generation and manipulation |
+| `pyopenssl` | Accepting self-signed client certificates via custom TLS verification |
 | `structlog` | Structured logging |
 | `tomli` | TOML parsing (Python < 3.11) |
 | `tomli-w` | TOML writing (for TOFU export) |

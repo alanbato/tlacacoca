@@ -94,6 +94,9 @@ else:
 | `generate_self_signed_cert()` | Generate self-signed certificates |
 | `get_certificate_fingerprint()` | Get SHA-256 fingerprint of certificate |
 | `load_certificate()` | Load certificate from PEM file |
+| `create_permissive_server_context()` | PyOpenSSL context accepting self-signed client certs |
+| `TLSServerProtocol` | asyncio protocol for manual TLS via PyOpenSSL memory BIOs |
+| `TLSTransportWrapper` | Transport wrapper exposing peer certificate to inner protocol |
 
 ### Middleware
 

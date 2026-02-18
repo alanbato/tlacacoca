@@ -74,6 +74,48 @@ context = create_server_context(
 )
 ```
 
+### Server Accepting Self-Signed Client Certificates
+
+For TOFU-based protocols where clients have their own self-signed certificates:
+
+```python
+import asyncio
+from tlacacoca import (
+    create_permissive_server_context,
+    TLSServerProtocol,
+)
+
+# Create PyOpenSSL context that accepts ANY client certificate
+pyopenssl_ctx = create_permissive_server_context(
+    certfile="server.pem",
+    keyfile="server-key.pem",
+    request_client_cert=True,
+)
+
+class MyProtocol(asyncio.Protocol):
+    def connection_made(self, transport):
+        self.transport = transport
+        # Client cert is available as a cryptography object
+        cert = transport.peer_certificate  # or None
+
+    def data_received(self, data: bytes):
+        self.transport.write(data)  # echo
+        self.transport.close()
+
+    def connection_lost(self, exc):
+        pass
+
+async def main():
+    loop = asyncio.get_running_loop()
+    server = await loop.create_server(
+        lambda: TLSServerProtocol(MyProtocol, pyopenssl_ctx),
+        "localhost", 1965,
+        # No ssl= parameter — TLS handled by TLSServerProtocol
+    )
+    async with server:
+        await server.serve_forever()
+```
+
 **Next Steps:**
 
 - See [Certificate Management](how-to/certificates.md) for generating certificates

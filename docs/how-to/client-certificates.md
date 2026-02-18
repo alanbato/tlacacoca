@@ -346,6 +346,108 @@ async def main():
 asyncio.run(main())
 ```
 
+## Accepting Self-Signed Client Certificates (TOFU)
+
+The standard `create_server_context()` with `request_client_cert=True` validates client certificates against a CA trust store. This means **self-signed client certificates are rejected** during the TLS handshake — a problem for TOFU-based protocols where clients generate their own certificates.
+
+Tlacacoca provides a PyOpenSSL-based alternative that accepts any client certificate, deferring trust decisions to the application layer.
+
+### Permissive Server Context
+
+```python
+from tlacacoca import create_permissive_server_context
+
+# Accept ANY client certificate (including self-signed)
+pyopenssl_ctx = create_permissive_server_context(
+    certfile="server.pem",
+    keyfile="server.key",
+    request_client_cert=True,
+    session_id=b"myapp",  # Optional: for TLS session resumption
+)
+```
+
+!!! note "When to use which context"
+    - **`create_server_context()`** — Use when you know all client CAs in advance (closed set). Works with asyncio's `ssl=` parameter.
+    - **`create_permissive_server_context()`** — Use when clients have arbitrary self-signed certificates (open set, TOFU). Requires `TLSServerProtocol` for asyncio integration.
+
+### Server with TLSServerProtocol
+
+Since PyOpenSSL contexts cannot be passed to asyncio's `ssl=` parameter, use `TLSServerProtocol` to handle TLS manually via memory BIOs:
+
+```python
+import asyncio
+from tlacacoca import (
+    create_permissive_server_context,
+    TLSServerProtocol,
+    get_certificate_fingerprint,
+)
+from cryptography import x509
+
+class MyProtocol(asyncio.Protocol):
+    def connection_made(self, transport):
+        self.transport = transport
+
+        # Access client certificate from transport wrapper
+        peer_cert = transport.peer_certificate
+        if peer_cert:
+            fp = get_certificate_fingerprint(peer_cert)
+            print(f"Client certificate: {fp}")
+
+    def data_received(self, data: bytes):
+        # Process request...
+        self.transport.write(b"response")
+        self.transport.close()
+
+    def connection_lost(self, exc):
+        pass
+
+async def main():
+    pyopenssl_ctx = create_permissive_server_context(
+        certfile="server.pem",
+        keyfile="server.key",
+        request_client_cert=True,
+    )
+
+    loop = asyncio.get_running_loop()
+    server = await loop.create_server(
+        lambda: TLSServerProtocol(MyProtocol, pyopenssl_ctx),
+        "localhost",
+        1965,
+        # NOTE: No ssl= parameter — TLS is handled by TLSServerProtocol
+    )
+
+    async with server:
+        await server.serve_forever()
+
+asyncio.run(main())
+```
+
+### Accessing Client Certificates
+
+After the TLS handshake, `TLSTransportWrapper` exposes the client certificate in two ways:
+
+```python
+class MyProtocol(asyncio.Protocol):
+    def connection_made(self, transport):
+        # Method 1: Direct access (recommended)
+        cert = transport.peer_certificate  # cryptography.x509.Certificate or None
+
+        # Method 2: Via ssl_object compatibility shim
+        ssl_obj = transport.get_extra_info("ssl_object")
+        if ssl_obj:
+            cert_der = ssl_obj.getpeercert(binary_form=True)
+```
+
+### Choosing Between Stdlib and PyOpenSSL
+
+| Feature | `create_server_context()` | `create_permissive_server_context()` |
+|---------|--------------------------|--------------------------------------|
+| Self-signed client certs | Rejected | Accepted |
+| Known CA client certs | Validated | Accepted (no CA check) |
+| asyncio integration | `ssl=` parameter | `TLSServerProtocol` wrapper |
+| Dependency | stdlib `ssl` | `pyOpenSSL` |
+| Use case | Closed set of known clients | Open set / TOFU |
+
 ## Troubleshooting
 
 ### Client Certificate Not Received

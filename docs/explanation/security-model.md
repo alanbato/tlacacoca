@@ -124,6 +124,35 @@ If a server's private key is compromised, there's no automatic way to notify cli
 
 When a certificate changes, the client cannot distinguish between legitimate renewal and attack. Users must make trust decisions with limited information.
 
+## Self-Signed Client Certificates
+
+### The Problem with CERT_OPTIONAL
+
+Python's `ssl.CERT_OPTIONAL` validates client certificates against a CA trust store. Self-signed certificates — which have no CA — fail validation and the TLS handshake is terminated. This is a fundamental limitation of the stdlib `ssl` module, not a bug.
+
+This breaks TOFU-based protocols where clients generate their own certificates and servers accept them on first use, validating by fingerprint at the application layer.
+
+### PyOpenSSL Solution
+
+Tlacacoca solves this with PyOpenSSL's `set_verify()` callback, which allows accepting any certificate during the TLS handshake:
+
+1. **`create_permissive_server_context()`** creates a PyOpenSSL `SSL.Context` with a callback that always returns `True`
+2. **`TLSServerProtocol`** handles TLS manually via memory BIOs, since PyOpenSSL contexts cannot be passed to asyncio's `ssl=` parameter
+3. Client certificates are extracted after handshake and converted to `cryptography` objects for fingerprint validation at the application layer
+
+This is the same proven approach used by [Jetforce](https://github.com/michael-lazar/jetforce) (Gemini server) and other TOFU-based servers.
+
+### Two TLS Paths
+
+Tlacacoca provides two distinct TLS paths for servers:
+
+| Path | Function | Use Case |
+|------|----------|----------|
+| **Stdlib** | `create_server_context()` | Known client CAs, use with `ssl=` |
+| **PyOpenSSL** | `create_permissive_server_context()` | Self-signed client certs, use with `TLSServerProtocol` |
+
+Protocol implementations choose which path they need based on whether client certificates come from a known set (CA-signed) or an open set (self-signed, TOFU).
+
 ## Rate Limiting Design
 
 ### Token Bucket Algorithm

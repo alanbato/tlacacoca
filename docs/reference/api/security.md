@@ -7,6 +7,7 @@ This page documents the security-related modules in Tlacacoca, including TLS con
 The security modules provide:
 
 - **TLS Context Creation** (`tlacacoca.security.tls`) - Create SSL contexts for client and server connections
+- **PyOpenSSL TLS** (`tlacacoca.security.pyopenssl_tls`, `tlacacoca.security.tls_protocol`) - Accept self-signed client certificates using PyOpenSSL with asyncio memory BIO integration
 - **Certificate Management** (`tlacacoca.security.certificates`) - Generate, load, validate, and fingerprint TLS certificates
 - **TOFU Database** (`tlacacoca.security.tofu`) - Store and verify certificate fingerprints for known hosts
 
@@ -101,6 +102,121 @@ context = create_server_context(
     client_ca_certs=["client1.pem", "client2.pem"]
 )
 ```
+
+## PyOpenSSL TLS (Self-Signed Client Certificates)
+
+These components use PyOpenSSL to accept arbitrary self-signed client certificates during TLS handshake, deferring trust decisions to the application layer.
+
+### create_permissive_server_context
+
+```python
+def create_permissive_server_context(
+    certfile: str,
+    keyfile: str,
+    request_client_cert: bool = False,
+    session_id: bytes | None = None,
+) -> SSL.Context
+```
+
+Create a PyOpenSSL context that accepts any client certificate (including self-signed).
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `certfile` | `str` | Required | Path to server certificate (PEM) |
+| `keyfile` | `str` | Required | Path to server private key (PEM) |
+| `request_client_cert` | `bool` | `False` | Request client certificates |
+| `session_id` | `bytes \| None` | `None` | Session ID for TLS resumption |
+
+**Returns:** `OpenSSL.SSL.Context` configured for server connections.
+
+!!! info "Use with TLSServerProtocol"
+    PyOpenSSL contexts cannot be passed to asyncio's `ssl=` parameter. Use `TLSServerProtocol` for asyncio integration.
+
+**Example:**
+
+```python
+from tlacacoca import create_permissive_server_context, TLSServerProtocol
+
+ctx = create_permissive_server_context(
+    "server.pem", "server.key",
+    request_client_cert=True,
+    session_id=b"myapp",
+)
+
+server = await loop.create_server(
+    lambda: TLSServerProtocol(my_protocol_factory, ctx),
+    host, port,
+)
+```
+
+### TLSServerProtocol
+
+```python
+class TLSServerProtocol(asyncio.Protocol):
+    def __init__(
+        self,
+        inner_protocol_factory: Callable[[], asyncio.Protocol],
+        ssl_context: SSL.Context,
+    ) -> None
+```
+
+An `asyncio.Protocol` that handles TLS manually using PyOpenSSL memory BIOs. Wraps an inner protocol, performing encryption/decryption transparently.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `inner_protocol_factory` | `Callable[[], asyncio.Protocol]` | Factory for the inner protocol |
+| `ssl_context` | `SSL.Context` | PyOpenSSL context from `create_permissive_server_context()` |
+
+**Flow:**
+
+1. TCP connection established (no TLS)
+2. `TLSServerProtocol` performs TLS handshake via memory BIOs
+3. After handshake, inner protocol receives decrypted data
+4. Inner protocol writes are encrypted and sent over TCP
+
+### TLSTransportWrapper
+
+```python
+class TLSTransportWrapper:
+    peer_certificate: x509.Certificate | None
+```
+
+Transport wrapper passed to the inner protocol's `connection_made()`. Provides standard asyncio transport methods while handling TLS encryption.
+
+**Attributes:**
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `peer_certificate` | `x509.Certificate \| None` | Client's certificate after handshake |
+
+**Methods:**
+
+- `write(data: bytes)` — Encrypt and send data
+- `close()` — Initiate TLS shutdown with graceful delay
+- `get_extra_info(name)` — Supports `"peername"` and `"ssl_object"`
+- `is_closing()` — Check if transport is closing
+
+### get_peer_certificate_from_connection
+
+```python
+def get_peer_certificate_from_connection(
+    conn: SSL.Connection,
+) -> crypto.X509 | None
+```
+
+Extract peer certificate from a PyOpenSSL connection. Returns `None` if no certificate is available or on error.
+
+### x509_to_cryptography
+
+```python
+def x509_to_cryptography(cert: crypto.X509) -> x509.Certificate
+```
+
+Convert a PyOpenSSL `X509` certificate to a `cryptography` library `Certificate` object. This allows using tlacacoca's certificate utilities (fingerprinting, etc.) with certificates obtained via PyOpenSSL.
 
 ## Certificate Management
 
