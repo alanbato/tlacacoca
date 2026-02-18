@@ -19,7 +19,13 @@ from .security.certificates import (
     load_certificate,
     validate_certificate_file,
 )
+from .security.pyopenssl_tls import (
+    create_permissive_server_context,
+    get_peer_certificate_from_connection,
+    x509_to_cryptography,
+)
 from .security.tls import create_client_context, create_server_context
+from .security.tls_protocol import TLSServerProtocol, TLSTransportWrapper
 from .security.tofu import CertificateChangedError, TOFUDatabase
 
 # Middleware
@@ -39,6 +45,12 @@ __all__ = [
     # Security - TLS
     "create_client_context",
     "create_server_context",
+    # Security - PyOpenSSL TLS
+    "create_permissive_server_context",
+    "get_peer_certificate_from_connection",
+    "x509_to_cryptography",
+    "TLSServerProtocol",
+    "TLSTransportWrapper",
     # Security - Certificates
     "generate_self_signed_cert",
     "load_certificate",

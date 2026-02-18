@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "cryptography>=46.0.3",
+    "pyopenssl>=24.0.0",
     "structlog>=25.5.0",
     "tomli>=2.0.0 ; python_full_version < '3.11'",
     "tomli-w>=1.2.0",
