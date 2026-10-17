@@ -195,6 +195,12 @@ Limitations:
 
 Tlacacoca automatically cleans up idle rate limiters to manage memory.
 
+### Behind a TCP Proxy
+
+If the server sits behind a TCP relay, every connection comes from the relay's IP, and per-IP limits turn into one shared limit. Enabling the [PROXY protocol](../how-to/proxy-protocol.md) on `TLSServerProtocol` restores the real client IP.
+
+Because a PROXY header can claim any address, headers are only honored from `trusted_sources`. A trusted relay must always send a header. A header from any other peer closes the connection and is never used.
+
 ## Access Control Layers
 
 ### 1. IP-based Filtering

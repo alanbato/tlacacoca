@@ -19,6 +19,12 @@ from .security.certificates import (
     load_certificate,
     validate_certificate_file,
 )
+from .security.proxy_protocol import (
+    ProxyHeader,
+    ProxyProtocolConfig,
+    ProxyProtocolError,
+    parse_proxy_header,
+)
 from .security.pyopenssl_tls import (
     create_permissive_server_context,
     get_peer_certificate_from_connection,
@@ -51,6 +57,11 @@ __all__ = [
     "x509_to_cryptography",
     "TLSServerProtocol",
     "TLSTransportWrapper",
+    # Security - PROXY protocol
+    "ProxyProtocolConfig",
+    "ProxyHeader",
+    "ProxyProtocolError",
+    "parse_proxy_header",
     # Security - Certificates
     "generate_self_signed_cert",
     "load_certificate",

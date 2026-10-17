@@ -107,6 +107,7 @@ nav:
       - Rate Limiting: how-to/rate-limiting.md
       - Access Control: how-to/access-control.md
       - Client Certificates: how-to/client-certificates.md
+      - PROXY Protocol: how-to/proxy-protocol.md
       - Logging: how-to/logging.md
   - Reference:
       - reference/index.md

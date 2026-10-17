@@ -10,6 +10,7 @@ A protocol-agnostic foundation library providing shared components for building 
 
 - **Security First** - TLS context creation, TOFU certificate validation, certificate utilities
 - **Middleware System** - Rate limiting, IP access control, certificate authentication
+- **PROXY Protocol** - Opt-in v1/v2 support so servers behind TCP relays see real client IPs
 - **Structured Logging** - Privacy-preserving logging with IP hashing
 - **Protocol Agnostic** - Abstract interfaces that any TLS-based protocol can build upon
 - **Modern Python** - Full type hints, async/await support, and modern tooling with `uv`

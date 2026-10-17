@@ -44,6 +44,18 @@ These guides provide step-by-step instructions for accomplishing specific tasks 
 
 </div>
 
+## Deployment
+
+<div class="grid cards" markdown>
+
+-   :material-transit-connection-variant: **[Run Behind a TCP Proxy](proxy-protocol.md)**
+
+    ---
+
+    Keep real client IPs behind HAProxy, Traefik, or nginx with the PROXY protocol
+
+</div>
+
 ## Operations
 
 <div class="grid cards" markdown>
@@ -68,6 +80,7 @@ These guides provide step-by-step instructions for accomplishing specific tasks 
 | Set up IP allow list | [Access Control](access-control.md#create-an-allow-list) |
 | Block IP ranges | [Access Control](access-control.md#create-a-deny-list) |
 | Enable IP hashing in logs | [Logging](logging.md#privacy-preserving-logging) |
+| Keep client IPs behind a TCP proxy | [PROXY Protocol](proxy-protocol.md#enable-proxy-protocol) |
 
 ## Can't Find What You Need?
 
