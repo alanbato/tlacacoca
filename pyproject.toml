@@ -1,6 +1,6 @@
 [project]
 name = "tlacacoca"
-version = "0.2.1"
+version = "0.3.0"
 description = "Shared foundation library for TLS-based protocol implementations"
 readme = "README.md"
 authors = [
